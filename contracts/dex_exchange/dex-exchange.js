@@ -29,14 +29,14 @@ class Exchange {
     this.addressArray = info;
   }
 
-  changeStatus(bnbAddress) {
+  changeStatus(hash) {
     if (Blockchain.transaction.from != this.owner) {
-      return "无权访问";
+      return "NO Access";
     } else {
       let info = this.addressArray;
       var index;
       for (index in info) {
-        if (info[index].bnbAddress == bnbAddress) {
+        if (info[index].hash == hash) {
           info[index].status = 1;
           this.addressArray = info;
           return info[index];
