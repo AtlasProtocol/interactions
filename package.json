@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "ATP interaction contracts",
   "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
   "dependencies": {
     "bignumber.js": "^7.2.1",
     "extend": "^3.0.2",
