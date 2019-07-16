@@ -5,6 +5,10 @@
 
 "use strict";
 
+const STATUS_INITAL = 0;
+const STATUS_EXCHANGED = 1;
+const STATUS_RETURN = 2;
+
 class Exchange {
   constructor() {
     LocalContractStorage.defineProperty(this, "addressArray");
@@ -18,7 +22,7 @@ class Exchange {
 
   submitInfo(hash, bnbAddress) {
     let data = {
-      status: 0,
+      status: STATUS_INITAL,
       txhash: hash,
       bnbAddress: bnbAddress,
       hash: Blockchain.transaction.hash
@@ -29,7 +33,8 @@ class Exchange {
     this.addressArray = info;
   }
 
-  changeStatus(hash) {
+  //已转换至BEP-2
+  exchangeCoin(hash) {
     if (Blockchain.transaction.from != this.owner) {
       return "NO Access";
     } else {
@@ -37,13 +42,31 @@ class Exchange {
       var index;
       for (index in info) {
         if (info[index].hash == hash) {
-          info[index].status = 1;
+          info[index].status = STATUS_EXCHANGED;
           this.addressArray = info;
           return info[index];
         }
       }
     }
   }
+
+  //已返回NRC20
+  returnCoin(hash) {
+    if (Blockchain.transaction.from != this.owner) {
+      return "NO Access";
+    } else {
+      let info = this.addressArray;
+      var index;
+      for (index in info) {
+        if (info[index].hash == hash) {
+          info[index].status = STATUS_RETURN;
+          this.addressArray = info;
+          return info[index];
+        }
+      }
+    }
+  }
+
   getInfoByTx(bnbAddress) {
     let info = this.addressArray;
     var index;
