@@ -23,33 +23,33 @@ class Exchange {
       bnbAddress: bnbAddress,
       hash: Blockchain.transaction.hash
     };
-    let obj = this.addressArray;
-    obj.push(data);
+    let info = this.addressArray;
+    info.push(data);
 
-    this.addressArray = obj;
+    this.addressArray = info;
   }
 
   changeStatus(bnbAddress) {
     if (Blockchain.transaction.from != this.owner) {
       return "无权访问";
     } else {
-      let obj = this.addressArray;
-      var x;
-      for (x in obj) {
-        if (obj[x].bnbAddress == bnbAddress) {
-          obj[x].status = 1;
-          this.addressArray = obj;
-          return obj[x];
+      let info = this.addressArray;
+      var index;
+      for (index in info) {
+        if (info[index].bnbAddress == bnbAddress) {
+          info[index].status = 1;
+          this.addressArray = info;
+          return info[index];
         }
       }
     }
   }
   getInfoByTx(bnbAddress) {
-    let obj = this.addressArray;
-    var x;
-    for (x in obj) {
-      if (obj[x].bnbAddress == bnbAddress) {
-        return obj[x];
+    let info = this.addressArray;
+    var index;
+    for (index in info) {
+      if (info[index].bnbAddress == bnbAddress) {
+        return info[index];
       }
     }
   }
