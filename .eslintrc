@@ -1,0 +1,23 @@
+{
+  "root": true,
+
+  "extends": [
+    "eslint:recommended",
+    "plugin:prettier/recommended"
+  ],
+
+  "plugins": ["prettier"],
+
+  "parserOptions": {
+    "ecmaVersion": 6,
+  },
+
+  "globals": {
+    "LocalContractStorage": true,
+    "Blockchain": true
+  },
+
+  "env": {
+    "node": true
+  }
+}

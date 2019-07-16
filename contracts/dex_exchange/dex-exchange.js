@@ -3,67 +3,61 @@
  *
  */
 
-'use strict'
+"use strict";
 
 class Exchange {
+  constructor() {
+    LocalContractStorage.defineProperty(this, "addressArray");
+    LocalContractStorage.defineProperty(this, "owner");
+  }
 
-    constructor() {
-        LocalContractStorage.defineProperty(this,'addressArray')
-        LocalContractStorage.defineProperty(this,'owner')
+  init(address) {
+    this.addressArray = [];
+    this.owner = address;
+  }
 
-    }
+  submitInfo(hash, bnbAddress) {
+    let data = {
+      status: 0,
+      txhash: hash,
+      bnbAddress: bnbAddress,
+      hash: Blockchain.transaction.hash
+    };
+    let obj = this.addressArray;
+    obj.push(data);
 
-    init(address) {
-        this.addressArray = [];
-        this.owner = address;
-    }
+    this.addressArray = obj;
+  }
 
-    submitInfo(hash, bnbAddress) {
-        let data = {
-            status: 0,
-            txhash: hash,
-            bnbAddress:bnbAddress,
-            hash: Blockchain.transaction.hash
+  changeStatus(bnbAddress) {
+    if (Blockchain.transaction.from != this.owner) {
+      return "无权访问";
+    } else {
+      let obj = this.addressArray;
+      var x;
+      for (x in obj) {
+        if (obj[x].bnbAddress == bnbAddress) {
+          obj[x].status = 1;
+          this.addressArray = obj;
+          return obj[x];
         }
-        let obj = this.addressArray
-        obj.push(data)
-
-        this.addressArray = obj
-
+      }
     }
-
-    changeStatus(bnbAddress) {
-        if (Blockchain.transaction.from != this.owner) {
-            return '无权访问'
-        } else {
-            let obj = this.addressArray
-            var x;
-            for (x in obj) {
-                if (obj[x].bnbAddress == bnbAddress) {
-                    obj[x].status = 1
-                    this.addressArray = obj
-                    return obj[x]
-                }
-
-            }
-        }
+  }
+  getInfoByTx(bnbAddress) {
+    let obj = this.addressArray;
+    var x;
+    for (x in obj) {
+      if (obj[x].bnbAddress == bnbAddress) {
+        return obj[x];
+      }
     }
-    getInfoByTx(bnbAddress) {
-        let obj = this.addressArray
-        var x;
-        for (x in obj) {
-            if (obj[x].bnbAddress == bnbAddress) {
+  }
 
-                return obj[x]
-            }
-
-        }
-    }
-
-    dumpAll() {
-        console.log(this.addressArray);
-        return this.addressArray
-    }
+  dumpAll() {
+    console.log(this.addressArray);
+    return this.addressArray;
+  }
 }
 
 module.exports = Exchange;
