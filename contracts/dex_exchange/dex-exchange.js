@@ -5,9 +5,9 @@
 
 "use strict";
 
-const STATUS_INITAL = 0;
-const STATUS_EXCHANGED = 1;
-const STATUS_RETURN = 2;
+const STATUS_INITAL = 0; //初始参与
+const STATUS_EXCHANGED = 1; //已转换至BEP-2
+const STATUS_RETURN = 2; //返回NRC20 或参与失败退币
 
 class Exchange {
   constructor() {
