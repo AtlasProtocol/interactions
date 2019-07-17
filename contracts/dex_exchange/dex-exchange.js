@@ -9,35 +9,40 @@ const STATUS_INITAL = 0; //初始参与
 const STATUS_EXCHANGED = 1; //已转换至BEP-2
 const STATUS_RETURN = 2; //返回NRC20 或参与失败退币
 
+
 class Exchange {
   constructor() {
-    LocalContractStorage.defineProperty(this, "addressArray");
-    LocalContractStorage.defineProperty(this, "owner");
+    LocalContractStorage.defineProperty(this, "addressArray"); //储存地址对
+    LocalContractStorage.defineProperty(this, "owner");  //控制人
+    LocalContractStorage.defineProperty(this, "switch"); //合约开关控制
   }
 
   init(address) {
     this.addressArray = [];
     this.owner = address;
+    this.switch = true;
   }
 
   submitInfo(hash, bnbAddress) {
-    let data = {
-      status: STATUS_INITAL,
-      txhash: hash,
-      bnbAddress: bnbAddress,
-      hash: Blockchain.transaction.hash
-    };
-    let info = this.addressArray;
-    info.push(data);
+    if (this.switch) {
+      let data = {
+        status: STATUS_INITAL,
+        txhash: hash,
+        bnbAddress: bnbAddress,
+        hash: Blockchain.transaction.hash
+      };
+      let info = this.addressArray;
+      info.push(data);
 
-    this.addressArray = info;
+      this.addressArray = info;
+    }else {
+      return "contract inactivated"
+    }
   }
 
   //已转换至BEP-2
   exchangeCoin(hash) {
-    if (Blockchain.transaction.from != this.owner) {
-      return "NO Access";
-    } else {
+    if (this._accessControl()) {
       let info = this.addressArray;
       var index;
       for (index in info) {
@@ -47,14 +52,14 @@ class Exchange {
           return info[index];
         }
       }
+    } else {
+      return "NO ACCESS";
     }
   }
 
   //已返回NRC20
   returnCoin(hash) {
-    if (Blockchain.transaction.from != this.owner) {
-      return "NO Access";
-    } else {
+    if (this._accessControl()) {
       let info = this.addressArray;
       var index;
       for (index in info) {
@@ -64,6 +69,8 @@ class Exchange {
           return info[index];
         }
       }
+    } else {
+      return "NO ACCESS"
     }
   }
 
@@ -75,6 +82,18 @@ class Exchange {
         return info[index];
       }
     }
+  }
+
+  changeSwitchStatus() {
+    if (this._accessControl()) {
+      this.switch = !this.switch;
+    }else {
+      return 'NO ACCESS'
+    }
+  }
+
+  _accessControl() {
+    return Blockchain.transaction.from != this.owner;
   }
 
   dumpAll() {
