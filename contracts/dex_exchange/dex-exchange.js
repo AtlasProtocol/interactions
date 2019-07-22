@@ -1,33 +1,52 @@
-/**
- * Created by yiren on 2019-07-10
- *
- */
 
 "use strict";
 
-const STATUS_INITAL = 0; //初始参与
-const STATUS_EXCHANGED = 1; //已转换至BEP-2
-const STATUS_RETURN = 2; //返回NRC20 或参与失败退币
+/*
+ Copyright (C) 2019 atp contract authors
+
+ This file is part of the atp contract library.
+
+ the atp contract library is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ the atp contract library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with the atp contract library.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
+
+
+const STATUS_INITAL = 0; //Attend
+const STATUS_EXCHANGED = 1; //Token exchanged to BEP2
+const STATUS_RETURN = 2; //Fail
 
 
 class Exchange {
   constructor() {
-    LocalContractStorage.defineProperty(this, "addressArray"); //储存地址对
-    LocalContractStorage.defineProperty(this, "owner");  //控制人
-    LocalContractStorage.defineProperty(this, "switch"); //合约开关控制
+    LocalContractStorage.defineProperty(this, "addressArray"); //array to save address pairs
+    LocalContractStorage.defineProperty(this, "owner");  //admin
+    LocalContractStorage.defineProperty(this, "switch"); //switch of this contract
+    LocalContractStorage.defineProperty(this, "account"); //ATP pledge account
   }
 
-  init(address) {
+  init(address, account) {
     this.addressArray = [];
     this.owner = address;
     this.switch = true;
+    this.account = account;
   }
 
   submitInfo(hash, bnbAddress) {
     if (this.switch) {
       let data = {
         status: STATUS_INITAL,
-        txhash: hash,
+        txHash: hash,
         bnbAddress: bnbAddress,
         hash: Blockchain.transaction.hash
       };
@@ -40,7 +59,7 @@ class Exchange {
     }
   }
 
-  //已转换至BEP-2
+  //Change STATUS_EXCHANGED
   exchangeCoin(hash) {
     if (this._accessControl()) {
       let info = this.addressArray;
@@ -57,7 +76,7 @@ class Exchange {
     }
   }
 
-  //已返回NRC20
+  //STATUS_RETURN
   returnCoin(hash) {
     if (this._accessControl()) {
       let info = this.addressArray;
@@ -76,12 +95,18 @@ class Exchange {
 
   getInfoByTx(bnbAddress) {
     let info = this.addressArray;
-    var index;
+    let index;
+    let result = [];
     for (index in info) {
       if (info[index].bnbAddress == bnbAddress) {
-        return info[index];
+        result.push(info[index])
       }
     }
+    return result;
+  }
+
+  getAccountAddress() {
+    return this.account;
   }
 
   changeSwitchStatus() {
@@ -93,7 +118,7 @@ class Exchange {
   }
 
   _accessControl() {
-    return Blockchain.transaction.from != this.owner;
+    return Blockchain.transaction.from === this.owner;
   }
 
   dumpAll() {
@@ -103,9 +128,3 @@ class Exchange {
 }
 
 module.exports = Exchange;
-
-//n1gkcc7y1vfLPtXHey3NNGNParUZKYohWEy
-
-//n1yVcAda3ijEKSPiaJcXzBc3pnGvwErJEVk
-
-// {"pageParams":{"pay":{"currency":"NAS","value":"0","to":"n1yVcAda3ijEKSPiaJcXzBc3pnGvwErJEVk","payload":{"function":"submitInfo","args":"["hash1","bnb1"]","type":"call"}}},"des":"confirmTransfer","category":"jump"}
