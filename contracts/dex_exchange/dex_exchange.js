@@ -54,7 +54,7 @@ class Exchange {
       info.push(data);
 
       this.addressArray = info;
-    }else {
+    } else {
       return "contract inactivated"
     }
   }
