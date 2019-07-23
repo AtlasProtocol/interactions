@@ -93,12 +93,12 @@ class Exchange {
     }
   }
 
-  getInfoByTx(bnbAddress) {
+  getInfoByAddress(bnbAddress) {
     let info = this.addressArray;
     let index;
     let result = [];
     for (index in info) {
-      if (info[index].bnbAddress == bnbAddress) {
+      if (info[index].bnbAddress === bnbAddress) {
         result.push(info[index])
       }
     }

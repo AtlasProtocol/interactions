@@ -5,7 +5,7 @@
 
 "use strict";
 require("nebulas/lib/nvm/native");
-const Exchange = require("./dex-exchange");
+const Exchange = require("./dex_exchange");
 
 const exchange = new Exchange();
 const initAddr = "aaa";
