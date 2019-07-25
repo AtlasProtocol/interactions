@@ -113,7 +113,7 @@ class Exchange {
                 delete info[key];
 
             } else {
-              return 'Wrong key'
+                return 'Wrong key'
             }
         }
         this.addressBookExchanged = exchangedInfo;
@@ -191,20 +191,20 @@ class Exchange {
     }
 
     _submitEvent(value) {
-       Event.Trigger('Submit',{
-           data:value
-       })
+        Event.Trigger('Submit', {
+            data: value
+        })
     }
 
     _exchangeEvent(value) {
-        Event.Trigger('Exchange',{
-            data:value
+        Event.Trigger('Exchange', {
+            data: value
         })
     }
 
     _returnEvent(value) {
-        Event.Trigger('Return',{
-            data:value
+        Event.Trigger('Return', {
+            data: value
         })
     }
 
@@ -217,7 +217,7 @@ class Exchange {
     }
 
     arraytest() {
-        return ['11111','22222'];
+        return ['11111', '22222'];
     }
 }
 
