@@ -35,15 +35,17 @@ class Exchange {
         LocalContractStorage.defineProperty(this, "valid"); //status of this contract interactions when valid = true
         LocalContractStorage.defineProperty(this, "pledgeAccount"); //ATP pledge account
         LocalContractStorage.defineProperty(this, "phase"); //Phase number of exchange offer
+        LocalContractStorage.defineProperty(this, "totalAmount"); //Total amount of exchange offer
     }
 
-    init(address, account) {
+    init(address, account, amount) {
         this.addressBook = {};
         this.addressBookExchanged = {};
         this.owner = address;
         this.valid = true;
         this.pledgeAccount = account;
         this.phase = 1;
+        this.totalAmount = amount;
     }
 
     submitInfo(hash, bnbAddress) {
@@ -171,6 +173,7 @@ class Exchange {
         let phaseInfo = {
             phase: this.phase,
             account: this.pledgeAccount,
+            totalAmount: this.totalAmount
         }
     }
 
