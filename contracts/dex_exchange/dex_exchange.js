@@ -129,6 +129,7 @@ class Exchange {
         if (this._accessControl()) {
             let info = this.addressBook;
             let key = hash + from;
+            let exchangedInfo = this.addressBookExchanged;
             if (info[key]) {
                 let pair = info[key];
                 pair.status = STATUS_RETURN;
@@ -175,6 +176,8 @@ class Exchange {
             account: this.pledgeAccount,
             totalAmount: this.totalAmount
         }
+
+        return phaseInfo;
     }
 
     getAccountAddress() {
