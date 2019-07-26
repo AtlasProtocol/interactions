@@ -221,10 +221,6 @@ class Exchange {
     dumpAddressPairExchanged() {
         return this.addressBookExchanged;
     }
-
-    arraytest() {
-        return ['11111', '22222'];
-    }
 }
 
 module.exports = Exchange;

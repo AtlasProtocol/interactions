@@ -16,6 +16,15 @@ Submit transaction hash and bnb address<br/>
 `bnbAddress` user's bnb address<br/>
 <br/>
 
+`exchangeCoin(hash, from)` <br/>
+process exchange by hash <br/>
+`hash` transaction hash submitted <br/>
+`from` address that associated with the transaction
+
+`batchExchangeCoin(keys)` <br/>
+Batch process exchange <br/>
+`keys` array of keys, key = hash + from
+
 `getInfoByAddress(bnbAddress)`<br/>
 Get address pair by bnb address<br/>
 
