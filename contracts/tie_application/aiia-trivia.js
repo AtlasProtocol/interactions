@@ -561,7 +561,7 @@ AIIA.prototype.isSettled = function () {
     return this._isSettled === true
 };
 
-let AIIAKOL = function () {
+let AiiaTrivia = function () {
     AIIA.call(this);
     this.TIEType = 'AIIAKOL1.0.1';
 };
@@ -570,10 +570,10 @@ let AIIAKOL = function () {
     let Super = function () {
     };
     Super.prototype = AIIA.prototype;
-    AIIAKOL.prototype = new Super();
+    AiiaTrivia.prototype = new Super();
 })();
 
-AIIAKOL.prototype.getAnswersCount = function () {
+AiiaTrivia.prototype.getAnswersCount = function () {
     let ret = [];
     for (let i = 1; i < this.AddressCount + 1; i++) {
         let responses = (JSON.parse(this.getResponse(this.AddressArrayMap.get(i))))['responses'];
@@ -609,7 +609,7 @@ AIIAKOL.prototype.getAnswersCount = function () {
     return JSON.stringify(ret)
 };
 
-AIIAKOL.prototype.getCorrectUsers = function (validAnswer) {
+AiiaTrivia.prototype.getCorrectUsers = function (validAnswer) {
     let validObject = JSON.parse(validAnswer);
     let validIndex = [];
     for (let index in validObject) {
@@ -643,4 +643,4 @@ AIIAKOL.prototype.getCorrectUsers = function (validAnswer) {
     return JSON.stringify(ret)
 };
 
-module.exports = AIIAKOL;
+module.exports = AiiaTrivia;
