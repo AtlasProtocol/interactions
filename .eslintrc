@@ -14,7 +14,8 @@
 
   "globals": {
     "LocalContractStorage": true,
-    "Blockchain": true
+    "Blockchain": true,
+    "Event": true
   },
 
   "env": {
