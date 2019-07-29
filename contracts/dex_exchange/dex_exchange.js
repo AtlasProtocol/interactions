@@ -148,6 +148,30 @@ class Exchange {
         }
     }
 
+    //STATUS_IDLE
+    idleReturnCoin(hash, from) {
+        if (this._accessControl()) {
+            let info = this.addressBook;
+            let key = hash + from;
+            let exchangedInfo = this.addressBookExchanged;
+            if (info[key]) {
+                let pair = info[key];
+                pair.status = STATUS_IDLE;
+                exchangedInfo[key] = pair;
+                this.addressBookExchanged = exchangedInfo;
+
+                delete info[key];
+                this.addressBook = info;
+                this._returnEvent(pair);
+                return pair;
+            } else {
+                return "No pair found"
+            }
+        } else {
+            return "NO ACCESS"
+        }
+    }
+
     setPhase(num) {
         if (!this._accessControl()) {
             return 'NO ACCESS'
