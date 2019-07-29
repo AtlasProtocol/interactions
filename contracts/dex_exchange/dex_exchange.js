@@ -74,7 +74,7 @@ class Exchange {
     }
 
     //Change STATUS_EXCHANGED
-    exchangeCoin(hash, from) {
+    exchangeToken(hash, from) {
         let exchangedInfo = this.addressBookExchanged;
         if (this._accessControl()) {
             let info = this.addressBook;
@@ -99,7 +99,7 @@ class Exchange {
     }
 
     //batching
-    batchExchangeCoin(keys) {
+    batchExchangeToken(keys) {
         if (!this._accessControl()) {
             return 'NO ACCESS'
         }
@@ -125,7 +125,7 @@ class Exchange {
     }
 
     //STATUS_RETURN
-    returnCoin(hash, from) {
+    returnToken(hash, from) {
         if (this._accessControl()) {
             let info = this.addressBook;
             let key = hash + from;
@@ -149,7 +149,7 @@ class Exchange {
     }
 
     //STATUS_IDLE
-    idleReturnCoin(hash, from) {
+    idleReturnToken(hash, from) {
         if (this._accessControl()) {
             let info = this.addressBook;
             let key = hash + from;
