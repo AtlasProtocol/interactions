@@ -1,0 +1,36 @@
+{
+  "root": true,
+
+  "extends": [
+    "eslint:recommended",
+    "plugin:prettier/recommended"
+  ],
+
+  "plugins": ["prettier"],
+
+  "parserOptions": {
+    "ecmaVersion": 6,
+  },
+
+  "globals": {
+    "LocalContractStorage": true,
+    "Blockchain": true,
+    "Event": true
+  },
+
+  "env": {
+    "node": true
+  },
+
+  "overrides": [
+    {
+      "files": ["*.{spec,test}.js", "**/__tests__/**/*.js"],
+      "plugins": [
+        "jest"
+      ],
+      "env": {
+        "jest": true
+      },
+    }
+  ]
+}

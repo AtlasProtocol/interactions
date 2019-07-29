@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "ATP interaction contracts",
   "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
   "dependencies": {
     "bignumber.js": "^7.2.1",
     "extend": "^3.0.2",
@@ -11,10 +14,20 @@
   },
   "devDependencies": {
     "@babel/core": "^7.4.3",
-    "babel-core": "^6.26.3",
-    "babel-jest": "^24.7.1",
+    "babel-jest": "^24.8.0",
     "babel-preset-env": "^1.7.0",
-    "jest": "^24.7.1"
+    "eslint": "^6.0.1",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-plugin-jest": "^22.7.2",
+    "eslint-plugin-prettier": "^3.1.0",
+    "husky": "^3.0.1",
+    "jest": "^24.8.0",
+    "prettier": "1.18.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-push": "npm test"
+    }
   },
   "repository": "https://github.com/AtlasProtocol/interactions.git",
   "author": "atlaspro.io",
