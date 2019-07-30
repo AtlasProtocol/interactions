@@ -198,7 +198,8 @@ class Exchange {
         let phaseInfo = {
             phase: this.phase,
             account: this.pledgeAccount,
-            totalAmount: this.totalAmount
+            totalAmount: this.totalAmount,
+            valid: this.valid
         }
 
         return phaseInfo;
