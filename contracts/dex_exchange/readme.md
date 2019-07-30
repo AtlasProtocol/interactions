@@ -1,14 +1,14 @@
-#Token Exchange Offer Contract
+# Token Exchange Offer Contract
 As decentralised exchanges getting to their next stage into maturity , ATP is proposing to be listed on Binance Dex. ATP holders will have the chance to exchange their NRC20 based ATP tokens (based on Nebulas) to BEP2 based ATP tokens (based on Binance Chain).
 
-#Why BEP2?
+# Why BEP2?
 The listing on Binance Dex will not affect total supply of ATP tokens. ATP will provide an exchange offer to let ATP token holders to pledge NRC20 tokens for BEP2 tokens. Atlas Protocol will also provide an official bonus up to 5% of the total amount in the exchange offer.  After exchange offer completed, token holders will be able to trade ATP tokens in Binance DEX for BNB and buy ATP tokens using BNB. 
 <br/>
 <br/>
 You can participate at https://my.atlaspro.io/campaign/dex_exchange
 
 
-#Interface
+# Interface
 
 **```init(address, account)```**<br/>
 Initialization of contract. <br/>
@@ -46,7 +46,7 @@ Get All address pairs that exchanged
 `getPhaseInfo()`<br/>
 Get info of current phase
 
-#Events
+# Events
 
 `Submit` <br/>
 When user submit address pair to participate.
