@@ -74,7 +74,7 @@ class Exchange {
     }
 
     //Change STATUS_EXCHANGED
-    exchangeCoin(hash, from) {
+    exchangeToken(hash, from) {
         let exchangedInfo = this.addressBookExchanged;
         if (this._accessControl()) {
             let info = this.addressBook;
@@ -99,7 +99,7 @@ class Exchange {
     }
 
     //batching
-    batchExchangeCoin(keys) {
+    batchExchangeToken(keys) {
         if (!this._accessControl()) {
             return 'NO ACCESS'
         }
@@ -125,7 +125,7 @@ class Exchange {
     }
 
     //STATUS_RETURN
-    returnCoin(hash, from) {
+    returnToken(hash, from) {
         if (this._accessControl()) {
             let info = this.addressBook;
             let key = hash + from;
@@ -133,6 +133,30 @@ class Exchange {
             if (info[key]) {
                 let pair = info[key];
                 pair.status = STATUS_RETURN;
+                exchangedInfo[key] = pair;
+                this.addressBookExchanged = exchangedInfo;
+
+                delete info[key];
+                this.addressBook = info;
+                this._returnEvent(pair);
+                return pair;
+            } else {
+                return "No pair found"
+            }
+        } else {
+            return "NO ACCESS"
+        }
+    }
+
+    //STATUS_IDLE
+    idleReturnToken(hash, from) {
+        if (this._accessControl()) {
+            let info = this.addressBook;
+            let key = hash + from;
+            let exchangedInfo = this.addressBookExchanged;
+            if (info[key]) {
+                let pair = info[key];
+                pair.status = STATUS_IDLE;
                 exchangedInfo[key] = pair;
                 this.addressBookExchanged = exchangedInfo;
 
@@ -174,7 +198,8 @@ class Exchange {
         let phaseInfo = {
             phase: this.phase,
             account: this.pledgeAccount,
-            totalAmount: this.totalAmount
+            totalAmount: this.totalAmount,
+            valid: this.valid
         }
 
         return phaseInfo;
