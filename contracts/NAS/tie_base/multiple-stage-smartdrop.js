@@ -463,7 +463,7 @@ let MultipleStageSmartdrop = function () {
     MultipleStageSmartdrop.prototype = new Super();
 })();
 
-//{"address1":true,"address2":true,"address3":true}
+
 MultipleStageSmartdrop.prototype.addAddress = function (address, signature) {
     this._checkAuthorization(signature);
 

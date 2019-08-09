@@ -38,7 +38,7 @@ BaseTIE.prototype = {
         return 'deploy ok'
     },
 
-    // check if current address is the master account
+    //  check if current address is the master account
     _checkMasterAccount() {
         if (this.MasterAccount !== Blockchain.transaction.from) {
             throw new Error("Unauthorized account")
