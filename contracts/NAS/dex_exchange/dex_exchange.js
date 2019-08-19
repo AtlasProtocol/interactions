@@ -23,7 +23,7 @@
 const STATUS_INITAL = 0; //Attend
 const STATUS_EXCHANGED = 1; //Token exchanged to BEP2
 const STATUS_RETURN = 2; //Fail
-const STATUS_IDLE = 3; //IDLE info submitted
+const STATUS_INVALID = 3; //invalid info submitted
 
 class Exchange {
     constructor() {
@@ -141,15 +141,15 @@ class Exchange {
         }
     }
 
-    //STATUS_IDLE
-    idleReturnToken(hash, from) {
+    //STATUS_INVALID
+    returnInvalidToken(hash, from) {
         if (this._accessControl()) {
             let info = this.addressBook;
             let key = hash + from;
             let exchangedInfo = this.addressBookExchanged;
             if (info[key]) {
                 let pair = info[key];
-                pair.status = STATUS_IDLE;
+                pair.status = STATUS_INVALID;
                 exchangedInfo[key] = pair;
                 this.addressBookExchanged = exchangedInfo;
 
@@ -163,6 +163,30 @@ class Exchange {
         } else {
             return "NO ACCESS";
         }
+    }
+
+    //batching
+    batchReturnInvalidToken(keys) {
+        if (!this._accessControl()) {
+            return "NO ACCESS";
+        }
+        let keyArray = JSON.parse(keys);
+        let exchangedInfo = this.addressBookExchanged;
+        let info = this.addressBook;
+        for (var index in keyArray) {
+            let key = keyArray[index];
+            if (info[key]) {
+                let pair = info[key];
+                pair.status = STATUS_INVALID;
+                exchangedInfo[key] = pair;
+                delete info[key];
+            } else {
+                return "Wrong key";
+            }
+        }
+        this.addressBookExchanged = exchangedInfo;
+        this.addressBook = info;
+        return this.addressBookExchanged;
     }
 
     setPhase(num) {
