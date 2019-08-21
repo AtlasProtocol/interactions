@@ -33,6 +33,7 @@ class Exchange {
         LocalContractStorage.defineProperty(this, "valid"); //status of this contract interactions when valid = true
         LocalContractStorage.defineProperty(this, "pledgeAccount"); //ATP pledge account
         LocalContractStorage.defineProperty(this, "phase"); //Phase number of exchange offer
+        LocalContractStorage.defineProperty(this, "executors"); //executor of contract
     }
 
     init(address, account) {
@@ -42,6 +43,7 @@ class Exchange {
         this.valid = true;
         this.pledgeAccount = account;
         this.phase = 1;
+        this.executors = [];
     }
 
     submitInfo(hash, bnbAddress) {
@@ -64,8 +66,6 @@ class Exchange {
                 this._submitEvent(data);
                 return "Info submitted";
             }
-        } else {
-            return "contract inactivated";
         }
     }
 
@@ -88,33 +88,30 @@ class Exchange {
             } else {
                 return "No pair found";
             }
-        } else {
-            return "NO ACCESS";
         }
     }
 
     //batching
     batchExchangeToken(keys) {
-        if (!this._accessControl()) {
-            return "NO ACCESS";
-        }
-        let keyArray = JSON.parse(keys);
-        let exchangedInfo = this.addressBookExchanged;
-        let info = this.addressBook;
-        for (var index in keyArray) {
-            let key = keyArray[index];
-            if (info[key]) {
-                let pair = info[key];
-                pair.status = STATUS_EXCHANGED;
-                exchangedInfo[key] = pair;
-                delete info[key];
-            } else {
-                return "Wrong key";
+        if (this._accessControl()) {
+            let keyArray = JSON.parse(keys);
+            let exchangedInfo = this.addressBookExchanged;
+            let info = this.addressBook;
+            for (var index in keyArray) {
+                let key = keyArray[index];
+                if (info[key]) {
+                    let pair = info[key];
+                    pair.status = STATUS_EXCHANGED;
+                    exchangedInfo[key] = pair;
+                    delete info[key];
+                } else {
+                    return "Wrong key";
+                }
             }
+            this.addressBookExchanged = exchangedInfo;
+            this.addressBook = info;
+            return this.addressBookExchanged;
         }
-        this.addressBookExchanged = exchangedInfo;
-        this.addressBook = info;
-        return this.addressBookExchanged;
     }
 
     //STATUS_RETURN
@@ -136,8 +133,6 @@ class Exchange {
             } else {
                 return "No pair found";
             }
-        } else {
-            return "NO ACCESS";
         }
     }
 
@@ -160,42 +155,37 @@ class Exchange {
             } else {
                 return "No pair found";
             }
-        } else {
-            return "NO ACCESS";
         }
     }
 
     //batching
     batchReturnInvalidToken(keys) {
-        if (!this._accessControl()) {
-            return "NO ACCESS";
-        }
-        let keyArray = JSON.parse(keys);
-        let exchangedInfo = this.addressBookExchanged;
-        let info = this.addressBook;
-        for (var index in keyArray) {
-            let key = keyArray[index];
-            if (info[key]) {
-                let pair = info[key];
-                pair.status = STATUS_INVALID;
-                exchangedInfo[key] = pair;
-                delete info[key];
-            } else {
-                return "Wrong key";
+        if (this._accessControl()) {
+            let keyArray = JSON.parse(keys);
+            let exchangedInfo = this.addressBookExchanged;
+            let info = this.addressBook;
+            for (var index in keyArray) {
+                let key = keyArray[index];
+                if (info[key]) {
+                    let pair = info[key];
+                    pair.status = STATUS_INVALID;
+                    exchangedInfo[key] = pair;
+                    delete info[key];
+                } else {
+                    return "Wrong key";
+                }
             }
+            this.addressBookExchanged = exchangedInfo;
+            this.addressBook = info;
+            return this.addressBookExchanged;
         }
-        this.addressBookExchanged = exchangedInfo;
-        this.addressBook = info;
-        return this.addressBookExchanged;
     }
 
     setPhase(num) {
-        if (!this._accessControl()) {
-            return "NO ACCESS";
+        if (this._accessControl()) {
+            this.phase = num;
+            return this.phase;
         }
-
-        this.phase = num;
-        return this.phase;
     }
 
     getInfoByAddress(hash, from) {
@@ -215,7 +205,8 @@ class Exchange {
         let phaseInfo = {
             phase: this.phase,
             account: this.pledgeAccount,
-            valid: this.valid
+            valid: this.valid,
+            executors: this.executors
         };
 
         return phaseInfo;
@@ -228,13 +219,41 @@ class Exchange {
     changeValidStatus() {
         if (this._accessControl()) {
             this.valid = !this.valid;
-        } else {
-            return "NO ACCESS";
         }
     }
 
+    setExecutor(executors) {
+        if (this._ownerControl()) {
+            let addrArray = JSON.parse(executors);
+            this.executors = addrArray;
+        }
+    }
+
+    _ownerControl() {
+        if (Blockchain.transaction.from === this.owner) {
+            return true;
+        }
+
+        throw new Error("NO ACCESS");
+    }
+
     _accessControl() {
-        return Blockchain.transaction.from === this.owner;
+        let exec = this.executors;
+        let from = Blockchain.transaction.from;
+
+        for (let index = 0; index < exec.length; index++) {
+            if (from === exec[index]) {
+                return true;
+            }
+        }
+
+        if (Blockchain.transaction.from === this.owner) {
+            return true;
+        }
+
+        let error = 'NO ACCESS';
+
+        throw new Error(error);
     }
 
     _submitEvent(value) {
