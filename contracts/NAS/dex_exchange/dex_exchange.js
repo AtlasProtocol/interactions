@@ -57,9 +57,10 @@ class Exchange {
                 from: Blockchain.transaction.from
             };
             let info = this.addressBook;
+            let exchangedInfo = this.addressBookExchanged;
             let key = hash + Blockchain.transaction.from;
-            if (info[key]) {
-                return "Pair existed";
+            if (info[key] || exchangedInfo[key]) {
+                throw new Error('"Pair existed"');
             } else {
                 info[key] = data;
                 this.addressBook = info;
@@ -144,9 +145,7 @@ class Exchange {
             let exchangedInfo = this.addressBookExchanged;
             if (info[key]) {
                 let pair = info[key];
-                pair.status = STATUS_INVALID;
-                exchangedInfo[key] = pair;
-                this.addressBookExchanged = exchangedInfo;
+
 
                 delete info[key];
                 this.addressBook = info;
@@ -167,15 +166,13 @@ class Exchange {
             for (var index in keyArray) {
                 let key = keyArray[index];
                 if (info[key]) {
-                    let pair = info[key];
-                    pair.status = STATUS_INVALID;
-                    exchangedInfo[key] = pair;
+
+
                     delete info[key];
                 } else {
                     return "Wrong key";
                 }
             }
-            this.addressBookExchanged = exchangedInfo;
             this.addressBook = info;
             return this.addressBookExchanged;
         }
