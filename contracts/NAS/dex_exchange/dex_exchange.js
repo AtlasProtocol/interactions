@@ -20,32 +20,30 @@
 
 */
 
-
 const STATUS_INITAL = 0; //Attend
 const STATUS_EXCHANGED = 1; //Token exchanged to BEP2
 const STATUS_RETURN = 2; //Fail
-const STATUS_IDLE = 3; //IDLE info submitted
-
+const STATUS_INVALID = 3; //invalid info submitted
 
 class Exchange {
     constructor() {
         LocalContractStorage.defineProperty(this, "addressBook"); // save address pairs
         LocalContractStorage.defineProperty(this, "addressBookExchanged"); // save address pairs that exchanged
-        LocalContractStorage.defineProperty(this, "owner");  //admin
+        LocalContractStorage.defineProperty(this, "owner"); //admin
         LocalContractStorage.defineProperty(this, "valid"); //status of this contract interactions when valid = true
         LocalContractStorage.defineProperty(this, "pledgeAccount"); //ATP pledge account
         LocalContractStorage.defineProperty(this, "phase"); //Phase number of exchange offer
-        LocalContractStorage.defineProperty(this, "totalAmount"); //Total amount of exchange offer
+        LocalContractStorage.defineProperty(this, "executors"); //executor of contract
     }
 
-    init(address, account, amount) {
+    init(address, account) {
         this.addressBook = {};
         this.addressBookExchanged = {};
         this.owner = address;
         this.valid = true;
         this.pledgeAccount = account;
         this.phase = 1;
-        this.totalAmount = amount;
+        this.executors = [];
     }
 
     submitInfo(hash, bnbAddress) {
@@ -55,21 +53,20 @@ class Exchange {
                 txHash: hash,
                 bnbAddress: bnbAddress,
                 hash: Blockchain.transaction.hash,
-                phase: this.phase
+                phase: this.phase,
+                from: Blockchain.transaction.from
             };
             let info = this.addressBook;
+            let exchangedInfo = this.addressBookExchanged;
             let key = hash + Blockchain.transaction.from;
-            if (info[key]) {
-                return 'Pair existed'
+            if (info[key] || exchangedInfo[key]) {
+                throw new Error('"Pair existed"');
             } else {
                 info[key] = data;
                 this.addressBook = info;
                 this._submitEvent(data);
-                return 'Info submitted'
+                return "Info submitted";
             }
-
-        } else {
-            return "contract inactivated"
         }
     }
 
@@ -90,38 +87,32 @@ class Exchange {
                 this._exchangeEvent(pair);
                 return pair;
             } else {
-                return "No pair found"
+                return "No pair found";
             }
-
-        } else {
-            return "NO ACCESS";
         }
     }
 
     //batching
     batchExchangeToken(keys) {
-        if (!this._accessControl()) {
-            return 'NO ACCESS'
-        }
-        let keyArray = JSON.parse(keys);
-        let exchangedInfo = this.addressBookExchanged;
-        let info = this.addressBook;
-        for (var index in keyArray) {
-            let key = keyArray[index];
-            if (info[key]) {
-                let pair = info[key];
-                pair.status = STATUS_EXCHANGED;
-                exchangedInfo[key] = pair;
-                delete info[key];
-
-            } else {
-                return 'Wrong key'
+        if (this._accessControl()) {
+            let keyArray = JSON.parse(keys);
+            let exchangedInfo = this.addressBookExchanged;
+            let info = this.addressBook;
+            for (var index in keyArray) {
+                let key = keyArray[index];
+                if (info[key]) {
+                    let pair = info[key];
+                    pair.status = STATUS_EXCHANGED;
+                    exchangedInfo[key] = pair;
+                    delete info[key];
+                } else {
+                    return "Wrong key";
+                }
             }
+            this.addressBookExchanged = exchangedInfo;
+            this.addressBook = info;
+            return this.addressBookExchanged;
         }
-        this.addressBookExchanged = exchangedInfo;
-        this.addressBook = info;
-        return this.addressBookExchanged;
-
     }
 
     //STATUS_RETURN
@@ -141,44 +132,57 @@ class Exchange {
                 this._returnEvent(pair);
                 return pair;
             } else {
-                return "No pair found"
+                return "No pair found";
             }
-        } else {
-            return "NO ACCESS"
         }
     }
 
-    //STATUS_IDLE
-    idleReturnToken(hash, from) {
+    //STATUS_INVALID
+    returnInvalidToken(hash, from) {
         if (this._accessControl()) {
             let info = this.addressBook;
             let key = hash + from;
             let exchangedInfo = this.addressBookExchanged;
             if (info[key]) {
                 let pair = info[key];
-                pair.status = STATUS_IDLE;
-                exchangedInfo[key] = pair;
-                this.addressBookExchanged = exchangedInfo;
+
 
                 delete info[key];
                 this.addressBook = info;
                 this._returnEvent(pair);
                 return pair;
             } else {
-                return "No pair found"
+                return "No pair found";
             }
-        } else {
-            return "NO ACCESS"
+        }
+    }
+
+    //batching
+    batchReturnInvalidToken(keys) {
+        if (this._accessControl()) {
+            let keyArray = JSON.parse(keys);
+            let exchangedInfo = this.addressBookExchanged;
+            let info = this.addressBook;
+            for (var index in keyArray) {
+                let key = keyArray[index];
+                if (info[key]) {
+
+
+                    delete info[key];
+                } else {
+                    return "Wrong key";
+                }
+            }
+            this.addressBook = info;
+            return this.addressBookExchanged;
         }
     }
 
     setPhase(num) {
-        if (!this._accessControl()) {
-            return 'NO ACCESS'
+        if (this._accessControl()) {
+            this.phase = num;
+            return this.phase;
         }
-
-        this.phase = num;
-        return this.phase;
     }
 
     getInfoByAddress(hash, from) {
@@ -186,11 +190,11 @@ class Exchange {
         let exchangedInfo = this.addressBookExchanged;
         let key = hash + from;
         if (info[key]) {
-            return info[key]
+            return info[key];
         } else if (exchangedInfo[key]) {
             return exchangedInfo[key];
         } else {
-            return 'No pair found'
+            return "No pair found";
         }
     }
 
@@ -198,9 +202,9 @@ class Exchange {
         let phaseInfo = {
             phase: this.phase,
             account: this.pledgeAccount,
-            totalAmount: this.totalAmount,
-            valid: this.valid
-        }
+            valid: this.valid,
+            executors: this.executors
+        };
 
         return phaseInfo;
     }
@@ -209,34 +213,62 @@ class Exchange {
         return this.pledgeAccount;
     }
 
-    changevalidStatus() {
+    changeValidStatus() {
         if (this._accessControl()) {
             this.valid = !this.valid;
-        } else {
-            return 'NO ACCESS'
         }
     }
 
+    setExecutor(executors) {
+        if (this._ownerControl()) {
+            let addrArray = JSON.parse(executors);
+            this.executors = addrArray;
+        }
+    }
+
+    _ownerControl() {
+        if (Blockchain.transaction.from === this.owner) {
+            return true;
+        }
+
+        throw new Error("NO ACCESS");
+    }
+
     _accessControl() {
-        return Blockchain.transaction.from === this.owner;
+        let exec = this.executors;
+        let from = Blockchain.transaction.from;
+
+        for (let index = 0; index < exec.length; index++) {
+            if (from === exec[index]) {
+                return true;
+            }
+        }
+
+        if (Blockchain.transaction.from === this.owner) {
+            return true;
+        }
+
+        let error = 'NO ACCESS';
+
+        throw new Error(error);
     }
 
     _submitEvent(value) {
-        Event.Trigger('Submit', {
+        Event.Trigger("Submit", {
             data: value
-        })
+        });
     }
 
     _exchangeEvent(value) {
-        Event.Trigger('Exchange', {
+        Event.Trigger("Exchange", {
             data: value
-        })
+        });
     }
 
     _returnEvent(value) {
-        Event.Trigger('Return', {
+        Event.Trigger("Return", {
             data: value
-        })
+        });
     }
 
     dumpAddressPair() {
