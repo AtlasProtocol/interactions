@@ -25,8 +25,6 @@
 
 */
 
-import Bignumber from "bignumber.js";
-
 //proposal status
 const STATUS_AWAIT = "Await";
 const STATUS_INPROGRESS = "In Progress";
@@ -49,19 +47,25 @@ class Governance {
     }
 
     init(chairs, executors, contract) {
-        this.chairGroup = chairs;
-        this.execGroup = executors;
+        this.chairGroup = JSON.parse(chairs);
+        this.execGroup = JSON.parse(executors);
         this.proposalIndex = 0;
         this.openProposal = {};
         this.closedProposal = {};
-        this.allVoter = chairs.concat(executors);
+        let allVoter = JSON.parse(chairs);
+        let execGroup = JSON.parse(executors);
+        for (let i = 0; i < execGroup.length;i++) {
+            allVoter.push(execGroup[i])
+        }
+
+        this.allVoter = allVoter;
         this.NRC20Contract = contract;
 
         if (chairs.length === 0 || executors === 0) {
-            throw new Error('Please use two voter group');
+            throw new Error("Please use two voter group");
         }
 
-        return 'Deploy Done';
+        return "Deploy Done";
     }
 
     submitProposal(toAddress, amount, note) {
@@ -70,7 +74,7 @@ class Governance {
                 toAddress: toAddress,
                 amount: amount,
                 status: STATUS_AWAIT,
-                vote: null,
+                vote: {},
                 index: this.proposalIndex,
                 note: note
             };
@@ -93,24 +97,28 @@ class Governance {
                 let proposal = openBook[index];
                 let key = Blockchain.transaction.from;
                 proposal.vote[key] = decision;
+                openBook[index] = proposal;
 
                 this.openProposal = openBook;
 
                 this._statusChange(index);
 
                 return "Voted";
+            } else {
+                throw new Error('NO Proposal Found');
             }
         }
     }
 
     _proceedTransfer(index) {
-        let proposal = this.openProposal[index];
-        let amount = new Bignumber(proposal.amount);
+        let openProposal = this.openProposal;
+        let proposal = openProposal[index];
+        let amount = new BigNumber(proposal.amount * 1000000000000000000);
 
-        var atpContract = new Blockchain.Contract(
-            this.NRC20Contract
-        );
-        atpContract.value(0).call("transfer", proposal.toAddress, amount);
+        var atpContract = new Blockchain.Contract(this.NRC20Contract);
+        atpContract.value(0).call("transfer", proposal.toAddress, amount.toString());
+
+        return 'Making Transfer'
     }
 
     _statusChange(index) {
@@ -126,12 +134,11 @@ class Governance {
         let chairRejected = [];
         let execRejected = [];
         if (proposal.vote) {
-
             // count for chair group
             for (let key of Object.keys(proposal.vote)) {
                 for (let i = 0; i < chairGroup.length; i++) {
                     if (key === chairGroup[i]) {
-                        if (proposal.vote[key] === 1) {
+                        if (proposal.vote[key] == 1) {
                             chairVoted.push(key);
                         } else {
                             chairRejected.push(key);
@@ -144,7 +151,7 @@ class Governance {
             for (let key of Object.keys(proposal.vote)) {
                 for (let i = 0; i < execGroup.length; i++) {
                     if (key === execGroup[i]) {
-                        if (proposal.vote[key] === 1) {
+                        if (proposal.vote[key] == 1) {
                             execVoted.push(key);
                         } else {
                             execRejected.push(key);
@@ -161,18 +168,21 @@ class Governance {
                 //APPROVED
                 proposal.status = STATUS_APPROVED;
                 closedProposal[index] = proposal;
+                this._proceedTransfer(index);
+
+
                 delete openProposal[index];
 
                 this.openProposal = openProposal;
                 this.closedProposal = closedProposal;
 
-                this._proceedTransfer(index);
+
             } else if (
                 chairRejected.length >= chairGroup.length / 2 &&
                 execRejected.length >= execGroup.length / 2
             ) {
                 //REJECTED
-                proposal.status = STATUS_APPROVED;
+                proposal.status = STATUS_DECLINED;
                 closedProposal[index] = proposal;
                 delete openProposal[index];
 
@@ -195,6 +205,14 @@ class Governance {
         return this.closedProposal;
     }
 
+    getContractInfo() {
+        return {
+            chairGroup: this.chairGroup,
+            execGroup: this.execGroup,
+            tokenContract: this.NRC20Contract
+        }
+    }
+
     _accessControl() {
         let from = Blockchain.transaction.from;
         let voter = this.allVoter;
@@ -204,7 +222,9 @@ class Governance {
             }
         }
 
-        throw new Error("NO ACCESS");
+        let error = 'NO ACCESS ';
+
+        throw new Error(error);
     }
 }
 
