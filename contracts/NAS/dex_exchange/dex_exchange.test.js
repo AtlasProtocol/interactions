@@ -8,12 +8,15 @@ require("nebulas/lib/nvm/native");
 const Exchange = require("./dex_exchange");
 
 const exchange = new Exchange();
-const initAddr = "aaa";
+const initAddr = "bfaldjfasbdjkshaf";
 const initAccount = "bbb";
+const transferHash = "aabbccddd";
+const bnbAddress = "bnbadfaf";
+
 exchange.init(initAddr, initAccount);
 
-// mock 一个 transaction
-const txFrom = "bfaldjfasbdjkshaf";
+// mock transaction
+const txFrom = initAddr;
 const txHash = "gauidyfahfvaskjfhgaksjg";
 const mockTx = {
     value: "5",
@@ -28,9 +31,8 @@ test("contract init success", () => {
     expect(exchange.valid).toBe(true);
 });
 
-test("submitInfo ", () => {
-    const hash = "aabb";
-    const bnbAddress = "bnbadfaf";
+test("submitInfo success", () => {
+    const hash = transferHash;
     const submitInfo = exchange.submitInfo(hash, bnbAddress);
     expect(submitInfo).toBe("Info submitted");
     const info = exchange.addressBook;
@@ -38,7 +40,19 @@ test("submitInfo ", () => {
     const key = hash + txFrom;
     expect(info[key]).toEqual({
         status: 0,
-        txHash: hash,
+        txHash: transferHash,
+        bnbAddress: bnbAddress,
+        hash: Blockchain.transaction.hash,
+        phase: 1,
+        from: Blockchain.transaction.from
+    });
+});
+
+test("exchangeToken success", () => {
+    const pair = exchange.exchangeToken(transferHash, txFrom);
+    expect(pair).toEqual({
+        status: 1,
+        txHash: transferHash,
         bnbAddress: bnbAddress,
         hash: Blockchain.transaction.hash,
         phase: 1,
