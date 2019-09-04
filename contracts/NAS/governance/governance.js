@@ -26,10 +26,11 @@
 */
 
 //proposal status
-const STATUS_AWAIT = "Await";
+const STATUS_AWAIT = "Awaiting";
 const STATUS_INPROGRESS = "In Progress";
 const STATUS_APPROVED = "Approved";
 const STATUS_DECLINED = "Declined";
+const STATUS_TRANSFERRED = "Transferred";
 
 //role
 const ROLE_CHAIR = "role_chair";
@@ -42,6 +43,7 @@ class Governance {
         LocalContractStorage.defineProperty(this, "allVoter"); // save executors
         LocalContractStorage.defineProperty(this, "openProposal"); // await
         LocalContractStorage.defineProperty(this, "closedProposal"); // decided
+        LocalContractStorage.defineProperty(this, "awaitTransferProposal"); // decided
         LocalContractStorage.defineProperty(this, "proposalIndex"); // index start at 0
         LocalContractStorage.defineProperty(this, "NRC20Contract"); // contract address
     }
@@ -52,10 +54,11 @@ class Governance {
         this.proposalIndex = 0;
         this.openProposal = {};
         this.closedProposal = {};
+        this.awaitTransferProposal = {};
         let allVoter = JSON.parse(chairs);
         let execGroup = JSON.parse(executors);
-        for (let i = 0; i < execGroup.length;i++) {
-            allVoter.push(execGroup[i])
+        for (let i = 0; i < execGroup.length; i++) {
+            allVoter.push(execGroup[i]);
         }
 
         this.allVoter = allVoter;
@@ -105,25 +108,51 @@ class Governance {
 
                 return "Voted";
             } else {
-                throw new Error('NO Proposal Found');
+                throw new Error("NO Proposal Found");
+            }
+        }
+    }
+
+    startTransferForProposal(index) {
+        if (this._accessControl()) {
+            let closedProposal = this.closedProposal;
+            let awaitTransferProposal = this.awaitTransferProposal;
+            let proposal = awaitTransferProposal[index];
+
+            if (proposal && proposal.status == STATUS_APPROVED) {
+                this._proceedTransfer(index);
+
+
+
+                proposal.status = STATUS_TRANSFERRED;
+                closedProposal[index] = proposal;
+                delete awaitTransferProposal[index];
+
+                this.closedProposal = closedProposal;
+                this.awaitTransferProposal = awaitTransferProposal;
+                return "Making Transfer";
+            } else {
+                throw new Error("Proposal Status Error");
             }
         }
     }
 
     _proceedTransfer(index) {
-        let openProposal = this.openProposal;
-        let proposal = openProposal[index];
+        let awaitTransferProposal = this.awaitTransferProposal;
+        let proposal = awaitTransferProposal[index];
         let amount = new BigNumber(proposal.amount * 1000000000000000000);
 
         var atpContract = new Blockchain.Contract(this.NRC20Contract);
-        atpContract.value(0).call("transfer", proposal.toAddress, amount.toString());
+        atpContract
+            .value(0)
+            .call("transfer", proposal.toAddress, amount.toString());
 
-        return 'Making Transfer'
     }
 
     _statusChange(index) {
         let openProposal = this.openProposal;
         let closedProposal = this.closedProposal;
+        let awaitTransferProposal = this.awaitTransferProposal;
         let proposal = openProposal[index];
         let chairGroup = this.chairGroup;
         let execGroup = this.execGroup;
@@ -167,18 +196,14 @@ class Governance {
             ) {
                 //APPROVED
                 proposal.status = STATUS_APPROVED;
-                closedProposal[index] = proposal;
-                this._proceedTransfer(index);
-
+                awaitTransferProposal[index] = proposal;
 
                 delete openProposal[index];
 
                 this.openProposal = openProposal;
-                this.closedProposal = closedProposal;
-
-
+                this.awaitTransferProposal = awaitTransferProposal;
             } else if (
-                chairRejected.length >= chairGroup.length / 2 &&
+                chairRejected.length >= chairGroup.length / 2 ||
                 execRejected.length >= execGroup.length / 2
             ) {
                 //REJECTED
@@ -205,12 +230,16 @@ class Governance {
         return this.closedProposal;
     }
 
+    getAwaitTransferProposal() {
+        return this.awaitTransferProposal;
+    }
+
     getContractInfo() {
         return {
             chairGroup: this.chairGroup,
             execGroup: this.execGroup,
             tokenContract: this.NRC20Contract
-        }
+        };
     }
 
     _accessControl() {
@@ -222,7 +251,7 @@ class Governance {
             }
         }
 
-        let error = 'NO ACCESS ';
+        let error = "NO ACCESS ";
 
         throw new Error(error);
     }
