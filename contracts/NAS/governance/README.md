@@ -1,4 +1,4 @@
-# Governance Contract
+# NRC20Governance Contract
 The contract is designed for management of NRC20 token with two voter group. Voters are able to submit a proposal to make a transfer.
 Proposals need to be voted for approve by at least half of each voter group.
 

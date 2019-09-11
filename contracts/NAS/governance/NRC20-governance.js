@@ -1,6 +1,6 @@
 /**
  * Created by yiren on 2019-08-19
- * governance.js  MultiSig for NRC20
+ * NRC20-governance.js  MultiSig for NRC20
  */
 
 "use strict";
@@ -36,7 +36,7 @@ const STATUS_TRANSFERRED = "Transferred";
 const ROLE_CHAIR = "role_chair";
 const ROLE_EXEC = "role_executor";
 
-class Governance {
+class NRC20Governance {
     constructor() {
         LocalContractStorage.defineProperty(this, "chairGroup"); // save chairman group
         LocalContractStorage.defineProperty(this, "execGroup"); // save executors
@@ -142,8 +142,8 @@ class Governance {
         let proposal = awaitTransferProposal[index];
         let amount = new BigNumber(proposal.amount * 1000000000000000000);
 
-        var atpContract = new Blockchain.Contract(this.NRC20Contract);
-        atpContract
+        var nrcContract = new Blockchain.Contract(this.NRC20Contract);
+        nrcContract
             .value(0)
             .call("transfer", proposal.toAddress, amount.toString());
 
@@ -257,4 +257,4 @@ class Governance {
     }
 }
 
-module.exports = Governance;
+module.exports = NRC20Governance;
